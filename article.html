@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章 | MUMU</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            appleWhite: '#f5f5f7',
+            appleGray: '#86868b',
+            darkBg: '#0a0a0a',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      background-color: #0a0a0a;
+      color: #f5f5f7;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* 自定义鼠标指针 */
+    .custom-cursor {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, border-color 0.2s, background-color 0.2s;
+      mix-blend-mode: difference;
+    }
+    
+    /* 交互元素上的鼠标样式 */
+    a:hover, button:hover, .menu-button:hover {
+      cursor: pointer;
+    }
+    
+    /* 隐藏默认鼠标 - 仅在非移动设备上生效 */
+    @media (min-width: 768px) {
+      * {
+        cursor: none !important;
+      }
+    }
+    
+    /* 移动端菜单样式 */
+    .menu-button {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+    }
+    
+    .menu-icon {
+      width: 24px;
+      height: 2px;
+      background-color: #f5f5f7;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-icon::before, .menu-icon::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 2px;
+      background-color: #f5f5f7;
+      left: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-icon::before {
+      top: -8px;
+    }
+    
+    .menu-icon::after {
+      bottom: -8px;
+    }
+    
+    /* 移动端优化 */
+    @media (max-width: 768px) {
+      /* 调整整体间距 */
+      .container {
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+      
+      /* 调整标题大小 */
+      h1 {
+        font-size: 2.5rem !important;
+      }
+      
+      /* 调整返回按钮 */
+      .back-link {
+        margin-bottom: 1rem;
+      }
+      
+      /* 文章卡片间距 */
+      .space-y-12 {
+        gap: 2rem;
+      }
+      
+      /* 文章标题大小 */
+      h2 {
+        font-size: 1.75rem !important;
+      }
+      
+      /* 文章内容图片 */
+      .md\:w-1\/4 {
+        width: 100%;
+      }
+      
+      /* 文章内容区域 */
+      .md\:w-3\/5 {
+        width: 100%;
+      }
+      
+      /* 分隔线间距 */
+      hr {
+        margin: 2rem 0 !important;
+      }
+    }
+    
+    .article-card {
+      transition: transform 0.3s ease;
+    }
+    
+    .article-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .back-link {
+      transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+      transform: translateX(-6px);
+    }
+  </style>
+</head>
+<body>
+  <!-- 自定义鼠标指针 -->
+  <div class="custom-cursor" id="customCursor"></div>
+  
+  <!-- 导航栏 -->
+  <div class="fixed top-0 left-0 w-full glass-effect z-50">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="text-appleWhite font-medium tracking-wider">MUMU</a>
+      
+      <!-- 桌面导航 -->
+      <div class="hidden md:flex space-x-6 sm:space-x-8">
+        <a href="design.html" class="text-appleGray hover:text-white transition-colors">设计 Design</a>
+        <a href="article.html" class="text-white border-b border-white pb-1 transition-all">文章 Article</a>
+        <a href="contact.html" class="text-appleGray hover:text-white transition-colors">联系 Contact</a>
+      </div>
+      
+      <!-- 移动端菜单按钮 -->
+      <div class="md:hidden menu-button" id="mobileMenuButton">
+        <div class="menu-icon" id="mobileMenuIcon"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 移动端菜单 -->
+  <div class="menu glass-effect fixed inset-0 bg-black bg-opacity-95 z-40 transform translate-x-full transition-transform duration-300 ease-in-out" id="mobileMenu">
+    <div class="flex flex-col items-center justify-center h-full space-y-8">
+      <a href="design.html" class="text-appleGray hover:text-white text-2xl font-medium transition-colors">设计 Design</a>
+      <a href="article.html" class="text-white text-2xl font-medium">文章 Article</a>
+      <a href="contact.html" class="text-appleGray hover:text-white text-2xl font-medium transition-colors">联系 Contact</a>
+    </div>
+    <button class="absolute top-6 right-6 text-appleWhite" id="closeMenuButton">
+      <i class="fa fa-times text-xl"></i>
+    </button>
+  </div>
+  
+  <!-- 主要内容 -->
+  <div class="container mx-auto px-6 pt-32 pb-20">
+    <div class="mb-16">
+      <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-light mb-4">思考与分享</h1>
+      <p class="text-appleGray max-w-2xl">记录Ai路上的思考，分享对创意、技术与未来的看法。</p>
+    </div>
+    
+    <!-- 文章列表 -->
+    <div class="max-w-5xl space-y-12">
+      <!-- 文章1 -->
+      <article class="article-card">
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <div class="md:w-1/4 aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden">
+            <img src="project-images/article/1.jpg" alt="把模糊需求转化为可落地标注标准" class="w-full h-full object-cover">
+          </div>
+          <div class="md:w-3/5">
+            <div class="mb-4">
+              <span class="text-xs text-appleGray bg-gray-900 px-3 py-1 rounded-full">Ai训练师</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-medium mb-3 hover:text-white transition-colors">
+              <a href="https://www.xiaohongshu.com/discovery/item/68a9e460000000001c00906b?source=webshare&xhsshare=pc_web&xsec_token=ABqCk3NxW1sx8VmR9h6HACrI1dLiQ38Mnoxr4yTFLOnu0=&xsec_source=pc_share" target="_blank">Ai训练师的需求拆解方法论</a>
+            </h2>
+            <p class="text-appleGray mb-4">从 “业务说不清楚” 到 “标注有章可循”：AI 训练师的需求拆解方法论</p>
+            <div class="flex items-center text-sm text-appleGray">
+              <span>2025年8月23日</span>
+              <span class="mx-2">•</span>
+              <span>8分钟阅读</span>
+            </div>
+          </div>
+        </div>
+      </article>
+      
+      <hr class="border-gray-800 my-12">
+      
+      <!-- 文章2 -->
+      <article class="article-card">
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <div class="md:w-1/4 aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden">
+            <img src="project-images/article/2.jpg" alt="AI时代的设计师角色转变" class="w-full h-full object-cover">
+          </div>
+          <div class="md:w-3/5">
+            <div class="mb-4">
+              <span class="text-xs text-appleGray bg-gray-900 px-3 py-1 rounded-full">Ai训练师</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-medium mb-3 hover:text-white transition-colors">
+              <a href="https://www.xiaohongshu.com/discovery/item/68ab0b10000000001d017099?source=webshare&xhsshare=pc_web&xsec_token=ABXV45DPJLf3kZgLw771VVGPhG3wAziu1nNBLoq1Um4U0=&xsec_source=pc_share" target="_blank">如何用 "过程设计" 保障数据质量</a>
+            </h2>
+            <p class="text-appleGray mb-4">AI 训练师必看：标注数据准确率 95% 的背后，是这 3 个管控动作</p>
+            <div class="flex items-center text-sm text-appleGray">
+              <span>2025年8月24日</span>
+              <span class="mx-2">•</span>
+              <span>10分钟阅读</span>
+            </div>
+          </div>
+        </div>
+      </article>
+      
+      <hr class="border-gray-800 my-12">
+      
+      <!-- 文章3 -->
+      <article class="article-card">
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <div class="md:w-1/4 aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden">
+            <img src="project-images/article/3.jpg" alt="突破创意瓶颈的7种思维方式" class="w-full h-full object-cover">
+          </div>
+          <div class="md:w-3/5">
+            <div class="mb-4">
+              <span class="text-xs text-appleGray bg-gray-900 px-3 py-1 rounded-full">Ai训练师</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-medium mb-3 hover:text-white transition-colors">
+              <a href="https://www.xiaohongshu.com/discovery/item/68ac8657000000001d004a4c?source=webshare&xhsshare=pc_web&xsec_token=ABEfyeQV8vFKYMfcTQ_RQQnN93OsJqdewf1zbM6LYQn5g=&xsec_source=pc_share" target="_blank">你真的会写规则文档吗？</a>
+            </h2>
+            <p class="text-appleGray mb-4">深聊 AI 标注的 “规则文档”：从是什么到怎么写，再到如何算好。</p>
+            <div class="flex items-center text-sm text-appleGray">
+              <span>2025年8月25日</span>
+              <span class="mx-2">•</span>
+              <span>8分钟阅读</span>
+            </div>
+          </div>
+        </div>
+      </article>
+      
+      <hr class="border-gray-800 my-12">
+      
+      <!-- 文章4 -->
+      <article class="article-card">
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+          <div class="md:w-1/4 aspect-[4/3] bg-gray-900 rounded-lg overflow-hidden">
+            <img src="project-images/article/4.jpg" alt="极简主义设计的回归与演变" class="w-full h-full object-cover">
+          </div>
+          <div class="md:w-3/5">
+            <div class="mb-4">
+              <span class="text-xs text-appleGray bg-gray-900 px-3 py-1 rounded-full">Ai训练师</span>
+            </div>
+            <h2 class="text-2xl md:text-3xl font-medium mb-3 hover:text-white transition-colors">
+              <a href="https://www.xiaohongshu.com/discovery/item/68adda6d000000001c03cd41?source=webshare&xhsshare=pc_web&xsec_token=ABZt1fY-QBueOZO4TRlPBEN_YdRK1fc6rCNoleCUvjH6A=&xsec_source=pc_share" target="_blank">Ai训练师的代码能力</a>
+            </h2>
+            <p class="text-appleGray mb-4">使用Cursor快速掌握轻量代码能力，拓展Ai训练师的能力边界。​</p>
+            <div class="flex items-center text-sm text-appleGray">
+              <span>2025年8月26日</span>
+              <span class="mx-2">•</span>
+              <span>10分钟阅读</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+  <script>
+    // 自定义鼠标指针功能 - 仅在非移动设备上生效
+    const cursor = document.getElementById('customCursor');
+    const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      cursor.style.display = 'none';
+    }
+    
+    // 跟踪鼠标移动
+    document.addEventListener('mousemove', (e) => {
+      if (isMobile) return;
+      
+      // 更新鼠标位置
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      // 更新主光标
+      cursor.style.left = x + 'px';
+      cursor.style.top = y + 'px';
+    });
+    
+    // 移动端菜单功能
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+    const closeMenuButton = document.getElementById('closeMenuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuIcon = document.getElementById('mobileMenuIcon');
+    
+    if (mobileMenuButton && closeMenuButton && mobileMenu) {
+      mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('translate-x-full');
+        document.body.style.overflow = mobileMenu.classList.contains('translate-x-full') ? 'auto' : 'hidden';
+      });
+      
+      closeMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.add('translate-x-full');
+        document.body.style.overflow = 'auto';
+      });
+    }
+    
+    // 检测可交互元素并更改光标样式
+    const interactiveElements = document.querySelectorAll('a, button, .menu-button, .article-card, [onclick], [href], [role="button"]');
+    
+    interactiveElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        cursor.style.backgroundColor = 'white';
+        cursor.style.borderColor = 'white';
+        cursor.style.width = '20px';
+        cursor.style.height = '20px';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        cursor.style.backgroundColor = 'transparent';
+        cursor.style.borderColor = 'white';
+        cursor.style.width = '24px';
+        cursor.style.height = '24px';
+      });
+    });
+    
+    // 处理窗口大小变化和页面滚动
+    window.addEventListener('resize', () => {
+      // 重新计算鼠标位置
+      if (window.mouseX !== null && window.mouseY !== null) {
+        cursor.style.left = window.mouseX + 'px';
+        cursor.style.top = window.mouseY + 'px';
+      }
+    });
+    
+    // 处理页面滚动
+    window.addEventListener('scroll', () => {
+      // 重新计算鼠标位置
+      if (window.mouseX !== null && window.mouseY !== null) {
+        cursor.style.left = window.mouseX + 'px';
+        cursor.style.top = window.mouseY + 'px';
+      }
+    });
+  </script>
+</body>
+</html>
+    

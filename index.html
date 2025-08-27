@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Endless Exploration</title>
+  <!-- 引入Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind配置：对齐苹果风格 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            appleWhite: '#f5f5f7', // 苹果暖白，避免刺眼
+            appleGray: '#86868b',  // 苹果次级文字灰
+            glass: 'rgba(255, 255, 255, 0.1)', // 磨砂玻璃基础色
+          },
+          fontFamily: {
+            // 苹果系统默认字体栈，跨设备适配
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            display: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .apple-text-glow {
+        text-shadow: 0 0 2px rgba(255, 255, 255, 0.2), 0 0 10px rgba(255, 255, 255, 0.05);
+      }
+      .apple-font-smoothing {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .glass-button {
+        background: rgba(120, 120, 120, 0.25);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+      .glass-button:hover {
+        background: rgba(150, 150, 150, 0.35);
+        transform: translateY(-2px);
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+      background-image: radial-gradient(circle at center, rgba(30, 30, 30, 0.1) 0%, transparent 70%);
+      /* 自定义鼠标指针为圆点 */
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1'%3E%3Ccircle cx='12' cy='12' r='6'/%3E%3C/svg%3E") 12 12, auto;
+    }
+    
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+  /* 文字内容 */
+    .text-container {
+      position: relative;
+      z-index: 2;
+      /* 确保在小屏幕上内容不被遮挡 */
+      padding-top: 60px;
+    }
+    
+    /* 底部光效 - 增强效果 */
+    #bottom-light {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40%; /* 增加高度 */
+      z-index: 1;
+      opacity: 0.8; /* 提高透明度 */
+      transform: scale(1.5); /* 扩大范围 */
+      transition: background 0.3s ease;
+    }
+    
+    /* 导航样式 */
+    .nav-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 3;
+      box-sizing: border-box;
+      /* 响应式调整 */
+      @media (max-width: 768px) {
+        padding: 1.25rem 2rem;
+      }
+    }
+    
+    .logo {
+      color: #f5f5f7;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      font-size: 1.2rem;
+    }
+    
+    .menu-button {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 5;
+    }
+    
+    .menu-icon {
+      width: 24px;
+      height: 2px;
+      background-color: #f5f5f7;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-icon::before, .menu-icon::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 2px;
+      background-color: #f5f5f7;
+      left: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-icon::before {
+      top: -8px;
+    }
+    
+    .menu-icon::after {
+      bottom: -8px;
+    }
+    
+    .menu-icon.active {
+      background-color: transparent;
+    }
+    
+    .menu-icon.active::before {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    
+    .menu-icon.active::after {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+    
+    .menu {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 80%;
+      max-width: 300px;
+      height: 100vh;
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      padding: 80px 24px 40px;
+      box-sizing: border-box;
+    }
+    
+    .menu.active {
+      transform: translateX(0);
+    }
+    
+    .menu-item {
+      color: #f5f5f7;
+      text-decoration: none;
+      font-size: 1.8rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+      transition-delay: 0s;
+      /* 响应式调整 */
+      @media (max-width: 768px) {
+        font-size: 1.5rem;
+        margin-bottom: 1.2rem;
+      }
+    }
+    
+    .menu.active .menu-item {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .menu.active .menu-item:nth-child(1) { transition-delay: 0.2s; }
+    .menu.active .menu-item:nth-child(2) { transition-delay: 0.3s; }
+    .menu.active .menu-item:nth-child(3) { transition-delay: 0.4s; }
+    
+    .menu-item:hover {
+      color: #ffffff;
+      transform: translateX(8px);
+    }
+    
+    /* 文字动画 - 加快速度 */
+    @keyframes appleFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .main-text {
+      animation: appleFadeIn 1.2s ease-out forwards;
+      opacity: 0;
+      animation-delay: 0.2s;
+    }
+    
+    .secondary-text {
+      animation: appleFadeIn 1.2s ease-out forwards;
+      opacity: 0;
+      animation-delay: 0.4s;
+    }
+    /* 自定义鼠标指针 */
+    .custom-cursor {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, border-color 0.2s, background-color 0.2s;
+      mix-blend-mode: difference;
+    }
+    
+
+    
+    /* 交互元素上的鼠标样式 */
+    a:hover, button:hover, .menu-button:hover {
+      cursor: pointer;
+    }
+    
+    /* 隐藏默认鼠标 */
+    * {
+      cursor: none !important;
+    }
+  </style>
+</head>
+<body class="apple-font-smoothing">
+  <!-- 自定义鼠标指针 -->
+    <div class="custom-cursor" id="customCursor"></div>
+  <!-- 导航栏 -->
+  <div class="nav-container">
+    <div class="logo">MUMU</div>
+    
+    <!-- 菜单按钮 -->
+    <div class="menu-button" id="menuButton">
+      <div class="menu-icon" id="menuIcon"></div>
+    </div>
+    
+    <!-- 菜单 -->
+    <div class="menu glass-effect" id="menu">
+      <a href="design.html" class="menu-item">设计 Design</a>
+      <a href="article.html" class="menu-item">文章 Article</a>
+      <a href="contact.html" class="menu-item">联系 Contact</a>
+    </div>
+  </div>
+  
+  <!-- 粒子球体容器 -->
+  <div id="canvas-container"></div>
+  
+  <!-- 底部光效 -->
+  <div id="bottom-light"></div>
+  
+  <!-- 文字内容 -->
+  <div class="text-container flex flex-col items-center justify-center h-screen px-8 sm:px-6 pt-48">
+    <h1 class="main-text text-appleWhite apple-text-glow text-[clamp(1.8rem,6vw,4rem)] font-display font-semibold tracking-wide mb-8">
+      Endless Exploration
+    </h1>
+    <!-- 磨砂玻璃按钮 -->
+    <a href="design.html" class="secondary-text glass-button text-appleGray text-[clamp(0.9rem,2.8vw,1.3rem)] font-sans font-bold tracking-normal px-8 py-3 rounded-full cursor-pointer pointer-events-auto">
+      探索永无止境
+    </a>
+  </div>
+
+  <script>
+    // 菜单交互
+    const menuButton = document.getElementById('menuButton');
+    const menuIcon = document.getElementById('menuIcon');
+    const menu = document.getElementById('menu');
+    
+    menuButton.addEventListener('click', () => {
+      menuIcon.classList.toggle('active');
+      menu.classList.toggle('active');
+      document.body.classList.toggle('overflow-hidden');
+    });
+    
+    // 获取底部光效元素
+    const bottomLight = document.getElementById('bottom-light');
+    let currentHue = 210; // 初始色调
+    
+    // 创建Canvas元素
+    const container = document.getElementById('canvas-container');
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    
+    // 自动适配屏幕尺寸
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // 粒子类
+    class Particle {
+      constructor() {
+        // 根据屏幕尺寸调整球体大小
+        const screenFactor = Math.min(window.innerWidth, window.innerHeight) / 1000;
+        this.baseRadius = Math.min(window.innerWidth, window.innerHeight) * 0.35 * (screenFactor > 0.5 ? screenFactor : 0.8); // 根据屏幕尺寸动态调整
+        this.theta = Math.random() * Math.PI * 2;
+        this.phi = Math.acos(Math.random() * 2 - 1);
+        this.baseDistance = this.baseRadius * (0.82 + Math.random() * 0.18);
+        this.distance = this.baseDistance;
+        
+        this.x = this.distance * Math.sin(this.phi) * Math.cos(this.theta);
+        this.y = this.distance * Math.sin(this.phi) * Math.sin(this.theta);
+        this.z = this.distance * Math.cos(this.phi);
+        
+        this.size = 1.8 + Math.random() * 2.5; // 增加粒子大小
+        this.baseHue = 210; // 苹果风格浅青蓝
+        console.log('Particle created with hue:', this.hue); // 调试日志
+        this.hue = this.baseHue;
+        
+        this.pulseSpeed = 0.008 + Math.random() * 0.02;
+        this.pulseOffset = Math.random() * Math.PI * 2;
+        this.waveSpeed = 0.04 + Math.random() * 0.08;
+        this.waveOffset = Math.random() * Math.PI * 2;
+      }
+      
+      update(mouseX, mouseY) {
+        // 呼吸效果
+        const pulse = Math.sin(Date.now() * 0.0008 + this.pulseOffset) * 0.4 + 0.6;
+        this.displaySize = this.size * pulse;
+
+        // 鼠标互动 - 针对移动设备优化
+        let waveEffect = 0;
+        if (mouseX !== null && mouseY !== null) {
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+          const mouseDist = Math.sqrt(Math.pow(mouseX - centerX, 2) + Math.pow(mouseY - centerY, 2));
+          
+          // 移动设备上增加互动区域
+          const interactionFactor = window.innerWidth < 768 ? 2.5 : 1.8;
+          if (mouseDist < this.baseRadius * interactionFactor) {
+            const mouseNormX = (mouseX - centerX) / mouseDist;
+            const mouseNormY = (mouseY - centerY) / mouseDist;
+            const particleNormX = this.x / this.distance;
+            const particleNormY = this.y / this.distance;
+            
+            const dotProduct = particleNormX * mouseNormX + particleNormY * mouseNormY;
+            const normalizedMouseDist = mouseDist / (this.baseRadius * interactionFactor);
+            // 移动设备上增强互动效果
+            const strengthFactor = window.innerWidth < 768 ? 40 : 28;
+            const waveStrength = (1 - normalizedMouseDist) * strengthFactor;
+            
+            waveEffect = Math.max(0, dotProduct) * waveStrength * Math.sin(Date.now() * 0.004 + this.waveOffset);
+          }
+          
+          // 颜色微调并更新底部光效
+          const hueOffset = Math.atan2(mouseY - centerY, mouseX - centerX) / (Math.PI * 2) * 120;
+          this.hue = (this.baseHue + hueOffset) % 360;
+          currentHue = this.hue; // 更新当前色调
+        }
+        
+        this.distance = this.baseDistance + waveEffect;
+        this.theta += 0.0006;
+        this.phi += 0.0003;
+        this.x = this.distance * Math.sin(this.phi) * Math.cos(this.theta);
+        this.y = this.distance * Math.sin(this.phi) * Math.sin(this.theta);
+      }
+      
+      draw() {
+        const scale = 1.2 / (2 + this.z / this.baseRadius);
+        const projectedX = this.x * scale + canvas.width / 2;
+        const projectedY = this.y * scale + canvas.height / 2 - 120;
+        const size = this.displaySize * scale;
+        const alpha = 0.45 + (0.55 * (1 - this.z / this.baseRadius));
+
+        // 粒子本体
+        ctx.fillStyle = `hsla(${this.hue}, 90%, 70%, ${alpha})`; // 增加饱和度和亮度
+        ctx.beginPath();
+        ctx.arc(projectedX, projectedY, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 淡发光效果
+        ctx.fillStyle = `hsla(${this.hue}, 90%, 80%, ${alpha * 0.3})`; // 增加饱和度、亮度和透明度
+        ctx.beginPath();
+        ctx.arc(projectedX, projectedY, size * 1.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    
+    // 创建粒子
+    const particles = [];
+    const particleCount = 420;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+    
+    // 鼠标跟踪
+    let mouseX = null;
+    let mouseY = null;
+    window.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        mouseX = e.touches[0].clientX;
+        mouseY = e.touches[0].clientY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+    window.addEventListener('touchend', () => {
+      mouseX = null;
+      mouseY = null;
+    });
+    
+    // 动画循环
+    function animate() {
+      // 更新底部光效颜色 - 增强效果
+      bottomLight.style.background = `linear-gradient(to top, hsla(${currentHue}, 80%, 55%, 0.5), transparent)`;
+      
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(particle => {
+        particle.update(mouseX, mouseY);
+        particle.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // 自定义鼠标指针功能
+    const cursor = document.getElementById('customCursor');
+    
+    // 根据设备类型决定是否显示自定义光标
+    const isMobile = window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      cursor.style.display = 'none';
+    }
+    
+    // 跟踪鼠标移动
+    document.addEventListener('mousemove', (e) => {
+      if (isMobile) return;
+      
+      // 更新鼠标位置
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      // 更新主光标
+      cursor.style.left = x + 'px';
+      cursor.style.top = y + 'px';
+    });
+    
+    // 检测可交互元素并更改光标样式
+    const interactiveElements = document.querySelectorAll('a, button, .menu-button, .glass-button, [onclick], [href], [role="button"]');
+    
+    interactiveElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        cursor.style.backgroundColor = 'white';
+        cursor.style.borderColor = 'white';
+        cursor.style.width = '20px';
+        cursor.style.height = '20px';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        cursor.style.backgroundColor = 'transparent';
+        cursor.style.borderColor = 'white';
+        cursor.style.width = '24px';
+        cursor.style.height = '24px';
+      });
+    });
+    
+    // 处理窗口大小变化和页面滚动
+    window.addEventListener('resize', () => {
+      // 重新计算鼠标位置
+      if (mouseX !== null && mouseY !== null) {
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top = mouseY + 'px';
+      }
+    });
+    
+    // 处理页面滚动
+    window.addEventListener('scroll', () => {
+      // 重新计算鼠标位置
+      if (mouseX !== null && mouseY !== null) {
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top = mouseY + 'px';
+      }
+    });
+  </script>
+</body>
+</html>
+    

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>联系 | MUMU</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            appleWhite: '#f5f5f7',
+            appleGray: '#86868b',
+            darkBg: '#0a0a0a',
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .copy-btn {
+        transition: all 0.3s ease;
+      }
+      .copy-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .copy-btn.copied {
+        background: rgba(0, 255, 0, 0.2);
+      }
+      .pulse-animation {
+        animation: pulse 2s infinite;
+      }
+    }
+  </style>
+  
+  <style>
+    body {
+      background-color: #000;
+      color: #f5f5f7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      /* 确保页面有足够的滚动空间 */
+      min-height: 200vh;
+    }
+    
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+    
+
+    
+    /* 主要内容容器层级 */
+    .container {
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* 工作履历部分的样式 */
+    #resume-section {
+      overflow-y: auto;
+    }
+    
+    /* 自定义滚动条 */
+    #resume-section::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    #resume-section::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    #resume-section::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+    
+    /* 工作经历项动画 */
+    .resume-item {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    
+    .resume-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    /* 自定义鼠标指针 */
+    .custom-cursor {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid white;
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width 0.2s, height 0.2s, border-color 0.2s, background-color 0.2s;
+      mix-blend-mode: difference;
+    }
+    
+    /* 交互元素上的鼠标样式 */
+    a:hover, button:hover, .menu-button:hover {
+      cursor: pointer;
+    }
+    
+    /* 隐藏默认鼠标 */
+    * {
+      cursor: none !important;
+    }
+    
+    .back-link {
+      transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+      transform: translateX(-6px);
+    }
+    
+    .info-card {
+      transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+      background-color: rgba(255, 255, 255, 0.02);
+      transform: translateY(-1px);
+    }
+    
+    .social-icon {
+      transition: all 0.3s ease;
+    }
+    
+    .social-icon:hover {
+      transform: translateY(-3px) scale(1.05);
+    }
+    
+    /* 为滚动提示添加过渡效果 */
+    #scroll-indicator {
+      transition: opacity 0.3s ease;
+    }
+    
+    /* 自定义缓慢的跳动动画 */
+    @keyframes bounce-slow {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(8px);
+      }
+    }
+    
+    .animate-bounce-slow {
+      animation: bounce-slow 2s infinite;
+    }
+    
+    /* 脉冲动画 */
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+      }
+    }
+    
+    /* 增强的卡片悬停效果 */
+    .info-card {
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .info-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 10px 25px -5px rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 玻璃按钮样式 */
+    .glass-button {
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .glass-button:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    /* 中等尺寸屏幕优化 */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .container {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+      
+      .info-card {
+        padding: 1rem;
+      }
+      
+      .info-card span {
+        font-size: 0.9rem;
+      }
+      
+      .social-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+      
+      .social-icon i {
+        font-size: 0.9rem;
+      }
+    }
+    
+    /* 小屏幕优化 */
+    @media (max-width: 767px) {
+      .info-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      
+      .info-card .copy-btn {
+        align-self: flex-end;
+      }
+      
+      .social-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 自定义鼠标指针 -->
+  <div class="custom-cursor" id="customCursor"></div>
+  
+  <style>
+    /* 移动端菜单样式 */
+    .menu-icon {
+      width: 24px;
+      height: 2px;
+      background-color: #f5f5f7;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-icon::before, .menu-icon::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 2px;
+      background-color: #f5f5f7;
+      left: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-icon::before {
+      top: -8px;
+    }
+    
+    .menu-icon::after {
+      bottom: -8px;
+    }
+  </style>
+  
+  <!-- 导航栏 -->
+  <div class="fixed top-0 left-0 w-full glass-effect z-50">
+    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="index.html" class="text-appleWhite font-medium tracking-wider">MUMU</a>
+      
+      <!-- 桌面导航 -->
+      <div class="hidden md:flex space-x-6 sm:space-x-8">
+        <a href="design.html" class="text-appleGray hover:text-white transition-colors">设计 Design</a>
+        <a href="article.html" class="text-appleGray hover:text-white transition-colors">文章 Article</a>
+        <a href="contact.html" class="text-white border-b border-white pb-1 transition-all">联系 Contact</a>
+      </div>
+      
+      <!-- 移动端菜单按钮 -->
+      <div class="md:hidden menu-button" id="mobileMenuButton">
+        <div class="menu-icon" id="mobileMenuIcon"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 移动端菜单 -->
+  <div class="menu glass-effect fixed inset-0 bg-black bg-opacity-95 z-40 transform translate-x-full transition-transform duration-300 ease-in-out" id="mobileMenu">
+    <div class="flex flex-col items-center justify-center h-full space-y-8">
+      <a href="design.html" class="text-appleGray hover:text-white text-2xl font-medium transition-colors">设计 Design</a>
+      <a href="article.html" class="text-appleGray hover:text-white text-2xl font-medium transition-colors">文章 Article</a>
+      <a href="contact.html" class="text-white text-2xl font-medium">联系 Contact</a>
+    </div>
+    <button class="absolute top-6 right-6 text-appleWhite" id="closeMenuButton">
+      <i class="fa fa-times text-xl"></i>
+    </button>
+  </div>
+  
+  <!-- 主要内容 -->
+  <div class="container mx-auto px-6 pt-32 pb-20">
+    <div class="mb-16">
+      
+        <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-light mb-4">联系我</h1>
+        <p class="text-appleGray max-w-2xl">我是木木，在有限的时间探索无限的知识，很高兴与你相识</p>
+    </div>
+    
+    <div class="flex flex-col lg:flex-row gap-0 max-w-4xl mx-auto">
+      <!-- 个人照片和姓名信息 -->
+      <div class="lg:w-2/5 lg:pr-0">
+        <!-- 个人照片 -->
+        <div class="aspect-[3/4] w-full max-w-[280px] lg:max-w-[220px] mx-auto lg:mx-0 overflow-hidden bg-gray-800 rounded-lg">
+          <img src="project-images/placeholder-profile.jpg" alt="木木" class="w-full h-full object-cover">
+        </div>
+        <!-- 姓名和职业 -->
+        <div class="mt-4 text-center lg:text-left">
+          <h3 class="text-xl lg:text-2xl font-medium">
+            木木
+            <span class="block text-sm text-appleGray mt-1">ai训练师 | 品牌设计师</span>
+          </h3>
+        </div>
+      </div>
+      
+      <!-- 联系信息 -->
+        <div class="lg:w-3/5 lg:pl-0">
+          
+          <!-- 联系信息列表 -->
+          <div class="space-y-0 border border-white/10 rounded-lg overflow-hidden">
+            <!-- 邮箱 -->
+            <div class="info-card flex items-center justify-between p-4 lg:p-5 border-b border-white/10 last:border-b-0">
+              <div class="flex items-center">
+                <i class="fa fa-envelope-o text-appleGray text-base lg:text-lg mr-3 lg:mr-4"></i>
+                <span class="text-sm lg:text-base">mumu2545@163.com</span>
+              </div>
+              <button class="copy-btn px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm border border-appleGray/30" data-text="mumu2545@163.com">
+                复制
+              </button>
+            </div>
+            
+            <!-- 电话 -->
+            <div class="info-card flex items-center justify-between p-4 lg:p-5 border-b border-white/10 last:border-b-0">
+              <div class="flex items-center">
+                <i class="fa fa-phone text-appleGray text-base lg:text-lg mr-3 lg:mr-4"></i>
+                <span class="text-sm lg:text-base">19154578090</span>
+              </div>
+              <button class="copy-btn px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm border border-appleGray/30" data-text="19154578090">
+                复制
+              </button>
+            </div>
+            
+            <!-- 微信 -->
+            <div class="info-card flex items-center justify-between p-4 lg:p-5 border-b border-white/10 last:border-b-0">
+              <div class="flex items-center">
+                <i class="fa fa-weixin text-appleGray text-base lg:text-lg mr-3 lg:mr-4"></i>
+                <span class="text-sm lg:text-base">cyf19882995157</span>
+              </div>
+              <button class="copy-btn px-2 lg:px-3 py-1 rounded-full text-xs lg:text-sm border border-appleGray/30" data-text="cyf19882995157">
+                复制
+              </button>
+            </div>
+            
+            <!-- 地址 -->
+            <div class="info-card flex items-center p-4 lg:p-5 border-b border-white/10 last:border-b-0">
+              <i class="fa fa-map-marker text-appleGray text-base lg:text-lg mr-3 lg:mr-4"></i>
+              <span class="text-sm lg:text-base">浙江省杭州市拱墅区</span>
+            </div>
+          </div>
+          
+          <!-- 社交媒体图标 -->
+          <div class="mt-8">
+            <div class="flex space-x-4 lg:space-x-6 justify-center lg:justify-start">
+                <!-- 小红书 -->
+                <div class="flex flex-col items-center">
+                  <a href="https://www.xiaohongshu.com/user/profile/6025d0ca0000000001003c55?xsec_token=YBatBALNyynbIycdTwMMrATTZkrQoHkOHShYEuQKFXTWs%3D&xsec_source=app_share&xhsshare=CopyLink&appuid=6025d0ca0000000001003c55&apptime=1756197116&share_id=e0c94c6465fe41149ce7a4a2f5beacd4&share_channel=copy_link" target="_blank" class="social-icon w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all relative group">
+                    <svg class="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                      <path fill="#fff" d="M172.2,25.3c2,0,3,0,3,3.1v25.3c0,2-1,3-3,3h-14.2c-3,0-4,1-4,4v87.8c0,2,1,3.1,3.1,3.1h25.3c3,0,4,1,4,4v24.2c0,3.1-1,4.1-4,4.1-16.2-1-33.3-1-50.5-1h-51.5c-3,0-4,0-2-3,4-8.1,8-17.2,13.1-25.3,1-2,2-3,5.1-3h25.3c2.4,0,2.9-.6,3-2.5V59.6c0-3-1-4-4-3h-14.2c-3.1,0-4-1-4-3v-24.3c0-3,1-4,4-4h65.6ZM30.9,149.5c7.1,3,15.1,2,23.2,2h20.2c2,0,3,1,2,3.1-5,9.1-9.1,18.2-14.1,27.3-1,2-2,2-4,2-5-1-11.1-1-19.2-1s-15.1,1-22.2-1c-3-1-4-2-2-4,5-9.1,9-17.2,13.1-26.3,1-1,1-3.1,3.1-2ZM80.3,16.2c3.1,0,3.1,1,2,3.1l-18.2,36.4c-1,1-1,2-2,4-1,2,0,3.1,2,4,2,1,2-1,3-2,1-2.1,2-3.1,5.1-3.1h24.2c3.1,0,3.1,1,2.1,3-8.1,15.1-15.1,31.3-23.2,46.5-3,6.1-2,8.1,5,8.1,2-1,6.1-1,10.1-1-4,7.1-7.1,14.2-10.1,21.2-2,5-5,6.1-9.1,6.1h-23.2c-2,0-4,0-6.1-1-7.1-2-9.1-7.1-7.1-14.1,4-11.1,10.1-21.2,15.1-32.3,1-2,2-3.1,3.1-6.1h-20.2c-8-2-11.1-7.1-8-15.1,3-9.1,8.1-18.2,12.1-26.3,5.1-9.1,9.1-19.2,14.2-28.3,1-2,2-3.1,5-3.1h24.2,0Z"/>
+                    </svg>
+                    <span class="absolute inset-0 rounded-full bg-white/10 opacity-75 blur-xl transform scale-0 group-hover:scale-110 transition-transform duration-500"></span>
+                  </a>
+                  <span class="text-xs text-appleGray mt-2">小红书</span>
+                </div>
+                
+                <!-- 抖音 -->
+                <div class="flex flex-col items-center">
+                  <a href="#" target="_blank" class="social-icon w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all relative group">
+                    <svg class="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                      <path fill="#fff" d="M180.4,83.3c-15.9,0-31.3-5.2-44-14.6v66.5c0,33.9-26.2,61.4-58.5,61.4s-58.5-27.5-58.5-61.4,26.2-61.4,58.5-61.4,6.4.2,9.4.8v35.2c-2.9-1.2-6.1-1.7-9.1-1.7-14.4,0-26.1,12.2-26.1,27.4s11.7,27.4,26.1,27.4,26-12.2,26-27.4V3.3h32.6c0,25.4,19.6,46,43.7,46v34h-.2"/>
+                    </svg>
+                    <span class="absolute inset-0 rounded-full bg-white/10 opacity-75 blur-xl transform scale-0 group-hover:scale-110 transition-transform duration-500"></span>
+                  </a>
+                  <span class="text-xs text-appleGray mt-2">抖音</span>
+                </div>
+                
+                                  <!-- 站酷 -->
+                  <div class="flex flex-col items-center">
+                    <a href="https://www.zcool.com.cn/u/19667989" target="_blank" class="social-icon w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all relative group">
+                    <svg class="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                      <path fill="#fff" d="M195.1,87.3l-.3-.8-3.4.6v.3l-2.2.3v.3l-2,.3v.3h-.9v.3l-2.2.3v.3h-.9v.3h-1.1v.3h-1.1v.3h-1.1v.3h-1.1v.3h-1.4v.3h-1.7v.2h-1.7v.3c-1.2.4-2.9-.1-3.6.6h-.3l.3-.9h.3v-.6l.6-.3v-.6l.8-.6v-.6l.6-.3.3-.9h.3v-.5l.9-.6.3-1.1.6-.3v-.6l.6-.3v-.6l.6-.3.3-1.1.6-.3.3-1.1.6-.3v-.6h.3v-.6h.3v-.6h.3v-.6l.6-.3v-.6h.4v-.6h.3v-.4h.3v-.6h.3v-.6h.3v-.6h.3v-.7h.3v-.6h.3v-.6h.3v-.6h.3l.3-1.1h.1v-.6h.3v-.9h.3l.3-1.1h.3v-.9h.3l.3-1.1h.3v-.9h.3v-.6h.3l.3-1.7h.3v-.6h.3c1.2-4.1,2.4-8.1,3.6-12.1v-1.4h.3v-1.1h.3v-1.4h.3v-1.4h.3v-1.5h.3v-1.7h.4v-2h.3v-2h.3v-2.9c.6-3.7.8-7.5.6-11.3v-4.5h-.3v-.6h-.3l-.3-.9c-2.9.1-4.1,2.7-5.6,4.2-1.9,1.9-4,3.7-6.2,5.4l-1.1,1.4h-.6l-.9,1.1-.8.3-.3.6h-.6l-.9,1.1h-.6l-.3.6h-.6l-.6.9h-.6l-.3.6-.9.3v.3h-.6l-.3.6-.8.3v.3h-.6l-.3.6h-.7l-.3.6-1.1.3-.3.6-1.1.3-.3.6-1.7.6-.3.6h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.4v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.9v.4l-1.1.3v.3h-.9v.3l-1.1.3v.3l-1.7.3v.3h-.6v.3l-1.7.3v.3h-.4c0,.1-1.7.4-1.7.4v.3h-.9v.3h-.9v.3l-2.9.6v.3h-1.1v.3h-1.1v.3h-1v.4h-1.1v.3h-1.1v.3h-1.4c-1.9.6-3.9,1.1-5.9,1.4.4-1,.8-2.1,1.1-2.9h.3l.2-2h.3v-.6h.3l.6-2.9h.3v-.8h.3v-1.1h.3v-1.1h.3v-1.4h.3v-1.4h.4v-2c1.2-6.6.7-13.4-1.4-19.7v-1.1h-.3v-.9h-.3v-.9h-.3v-.9h-.3v-1.1h-.4l-.3-1.7h-.3c-.3-.4-.5-.5-.8-.9h-.9l-.3.6h-.4l-.3.6h-.3v.9h-.3v.6h-.3v.9h-.3l-.3,1.1h-.3l-.3,1.1-.7.4-.6,1.7h-.3l-.3.9-.6.3v.6h-.3l-.3.8-.6.3v.6l-.6.3-.3.8-1.7,1.4v.6l-1.4,1.1c-.8.8-1.5,1.7-2.3,2.5h-.6l-1.1,1.4h-.6l-.6.8h-.6l-.6.9h-.6l-.3.6h-.6l-.3.6h-.6l-.3.6h-.6l-.3.6-1.1.3-.3.6h-.5v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3h-.6v.3l-1.7.6v.3h-.7v.3l-1.1.3v.3l-1.7.3v.3h-.6v.3l-9.9,2.9h-1.4v.3h-1.4v.3h-1.4v.2h-1.4v.3l-3.5.3-13.8,3.4c-6.7,2.2-13.1,5-19.2,8.4h-.6v.3h-.6v.3h-.6v.3h-.6l-.3.6h-.6v.3h-.4l-.3.6-1.1.3-.3.6h-.6l-.3.6h-.6c-.1.2-.2.4-.3.6h-.6v.3l-.9.3-.3.6h-.6l-.6.9h-.6l-.6.9h-.6l-.6.8h-.6l-1.1,1.4h-.4l-1.4,1.7h-.6l-3.4,3.7-2,1.7v.7l-1.7,1.4-.3.9-.9.6v.6l-.9.6v.6l-.9.6v.6l-.6.3-.3.9h-.3v.6l-.6.3-.3.8h-.3l-.3,1.1-.6.3-.6,1.7-.6.3v.6h-.3v.6h-.3v.6h-.3v.6h-.3v.6h-.5v.6h-.3l-.6,1.7h-.3v.8h-.3l-.3,1.1h-.3v.9h-.3v.6h-.3l-.3,1.7h-.1v.6h-.3l-.6,2.9h-.3v.9h-.3v.9h-.3v1.1h-.3v1.1h-.3v1.4h-.3v1.1h-.4v1.7h-.3v1.7h-.3v2.3h-.3v2.9c-.4,3-.5,6-.3,9h.3v3.4h.3v2.3h.3v2h.3v1.8c1.1,3.7,1.8,7.6,3.1,11l.3,1.7h.3v.6h.3l.3,1.7h.3l.3,1.1h.3v.9h.3l.3,1.1h.2v.6h.3v.8h.3l.6,1.7h.3l.3,1.1.6.3.6,1.7.6.3.3,1.1.6.3.3,1.1.6.3v.6l.6.3v.6l.6.3v.4l.6.3v.6l.8.6v.6l.9.6v.6l.9.6v.6l1.4,1.1v.6l2,1.7v.6l1.7,1.4,2.5,2.9h.8c.6.6,1.1,1.3,1.7,2h.6l1.1,1.4h.6l.9,1.1h.6l.5.7h.6l.3.6h.6l.6.8h.6l.3.6.9.3v.3l1.1.3.3.6h.6l.3.6,1.1.3.3.6,4.5,2v.3h.6v.3h.6v.3l1.7.6v.3h.8v.4l1.1.3v.3l1.7.3v.3h.6v.3l1.7.3v.3h.8v.3h.9v.3h.9v.4h.8l2.3.3v.3h1.1v.3h1.1v.3h1.4v.3h1.4v.3h1.4v.3h2v.3h2.3v.3h3.4v.4h9.3v-.3l5.6-.3v-.3h2v-.3h1.7v-.3h1.4v-.3l2.5-.3v-.3h1.1v-.3l2-.3h0c0-.1.9-.1.9-.1v-.3h.9v-.3h.9v-.3h.8v-.3h.9v-.3h.6v-.3l1.7-.3v-.3l1.1-.3v-.4h.9v-.3l1.1-.3v-.3h.9v-.3l1.7-.6v-.3h.6v-.3h.7v-.3l1.7-.6.3-.6,1.7-.6.3-.6,1.1-.3v-.3l.8-.3.3-.6,1.1-.3.6-.9.9-.3v-.3h.6l.3-.6h.6l.3-.6.9-.3.9-1.1h.6l1.1-1.4h.6c.8-.9,1.7-1.9,2.5-2.8l3.5-3.4v-.6l1.4-1.1v-.6l.6-.3v-.3l.6-.3v-.6l.9-.6v-.6l.6-.3.3-.9h.3v-.6l.6-.3v-.6l.6-.3v-.6l.6-.3v-.4h.3v-.6l.6-.3.3-1.1h.3v-.7l.6-.3v-.6h.3v-.6h.4v-.6h.3v-.6h.3v-.7h.3v-.6h.3l.6-1.7h.3l.3-1.4h.3v-.6h.3v-.9h.1v-.6h.3v-.9h.3v-.8h.3c.4-.8.4-1.7,0-2.4h0ZM33.3,134.7l-1.1.3v.4h-.6v.3h-1.1c-1.8.4-3.6.4-5.4,0v-.3h-.6v-.3l-1.7-.6c-1.1-.9-2.1-1.8-2.9-2.9l-1.1-.9v-.6l-.6-.3-.3-.8h-.3v-.6l-.6-.3v-.6l-.6-.3-.6-1.7h-.3l-.3-1.1h-.3l-.3-1.4h-.1v-.9h-.3v-.6h-.3v-.9h-.3v-.9h-.3v-1.1h-.3v-.3h.3v-.6c.7,0,1.4.3,2,.9l.3.6.9.3.6.8h.4l.6.9h.6l.3.6h.6l.6.9h.6l.3.6,1.1.3.3.6,1.1.3.3.6,2.5.8v.3h.6v.3h.8v.3h.6v.3h1.1v.3h.9v.3h.8v.3l2.3.3c1,.4,2,.7,3.1.9.2.3,0,0,.3.3-.5,2.2-1.8,4-3.6,5.3h0ZM111,114.9h-.3l-.3,1.4h-.3v.6h-.3v.6h-.3l-.3,1.1h-.5v.6h-.3v.6h-.3v.6h-.3v.6h-.3v.6l-.6.3-.3,1.1h-.3l-.3.9-.6.3v.6h-.3l-.3.9-.6.3v.6l-.6.3-.3.9-1.1.9c-3.6,4.8-8.6,8.5-14.4,10.4l-2.6.3c-4.9,1.1-10,.9-14.8-.6v-.3l-1.1-.3v-.3l-1.4-.3-.3-.6-1.1-.3-.3-.6h-.6l-.3-.4h-.6l-.6-1c-1.8-1.1-3.3-2.6-4.2-4.5l.9-.3h0c0-.1,1.4-.1,1.4-.1v-.3h2v-.3h2v-.3l3.1-.3v-.3h1.4v-.3h1.1v-.3h1.2v-.3h1.4c3.3-1.1,7-2.1,10.2-3.4l2.5-.6v-.3h.6v-.3h.9v-.3l1.4-.3v-.3h.6v-.3h.8v-.3h.6v-.3h.8v-.4l1.1-.3v-.3h.9v-.3l1.1-.3v-.3h.7v-.3l1.1-.3v-.3h.6v-.3h.8v-.4l1.7-.6v-.3h.6v-.3h.9v-.3l1.7-.6v-.3h.6v-.3h.9v-.3h.6c0-.1,1.7-.7,1.7-.7v-.3h.7v-.3h.6v-.3h1.1v-.3l.6.3v1.7Z"/>
+                    </svg>
+                    <span class="absolute inset-0 rounded-full bg-white/10 opacity-75 blur-xl transform scale-0 group-hover:scale-110 transition-transform duration-500"></span>
+                  </a>
+                  <span class="text-xs text-appleGray mt-2">站酷</span>
+                </div>
+              </div>
+          </div>
+          
+          <!-- 右侧视觉效果区域 -->
+          <div class="mt-12 relative">
+            <canvas id="visualEffectsCanvas" class="absolute -z-10 right-0 top-0 w-full h-64 opacity-70"></canvas>
+          </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 滚动提示 - 仅保留缓慢跳动的箭头 -->
+  <div id="scroll-indicator" class="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-40">
+    <i class="fa fa-chevron-down text-appleGray animate-bounce-slow"></i>
+  </div>
+  
+  <!-- 额外的滚动空间 -->
+  <div style="height: 100vh; width: 100%;"></div>
+  
+  <!-- 工作履历部分 - 默认位于页面底部 -->
+  <div id="resume-section" class="fixed bottom-[-100vh] left-0 w-full h-screen bg-darkBg z-50 transition-transform duration-1000 ease-out">
+    <div class="container mx-auto px-6 h-full flex flex-col justify-start pt-24 lg:pt-32 overflow-y-auto">
+      <div class="flex items-center justify-between mb-8 lg:mb-12 mt-8">
+        <h2 class="text-[clamp(1.8rem,4vw,3rem)] font-light">工作经历</h2>
+        <button id="back-to-contact" class="glass-button text-appleGray text-xl w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:text-white">
+          <i class="fa fa-arrow-up"></i>
+        </button>
+      </div>
+      
+      <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 max-w-6xl mx-auto">
+        <!-- 左侧：杭州唐颂广告有限公司 -->
+        <div class="resume-container lg:w-1/2 bg-darkBg/50 p-6 lg:p-8 rounded-lg border border-white/10">
+          <div class="resume-item">
+            <!-- 时间作为主标题，放在左上角 -->
+            <div class="text-xl lg:text-2xl xl:text-3xl font-light mb-3 lg:mb-4 text-white">2024.8至今</div>
+            <h3 class="text-lg lg:text-xl font-medium mb-3 lg:mb-4">杭州唐颂广告有限公司 <span class="job-tag inline-block px-2 lg:px-3 py-1 ml-2 text-xs lg:text-sm rounded-full bg-white/10 text-white/70 text-center border border-white/20 cursor-default">主创设计师</span></h3>
+            <p class="text-appleGray mb-3 lg:mb-4 text-sm lg:text-base">专注商业地产广告18年，服务全国多家印象城等顶级商业综合体</p>
+            
+            <div class="space-y-3 lg:space-y-4">
+              <div>
+                <p class="font-medium mb-2 text-base lg:text-lg">一、核心项目视觉主导:</p>
+                <p class="text-appleGray pl-4 text-sm lg:text-base">独立负责北京王府井喜悦、杭州古墩印象城、青岛未来城万科广场等大型商业综合体的全年重要营销节点的视觉创意与设计落地工作，对项目最终视觉输出质量承担主要责任。</p>
+              </div>
+              
+              <div>
+                <p class="font-medium mb-2 text-base lg:text-lg">二、拓展业务核心执行</p>
+                <p class="text-appleGray pl-4 text-sm lg:text-base">参与公司拓展业务、竞标项目，包括良渚文化大走廊品牌全案、云泰商业品牌全案、西溪印象城连廊焕新、王府井喜悦项目竞标一系列拓展业务，制定视觉策略并完成画面呈现与提案包装。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 右侧：浙江凌迪数字科技有限公司 -->
+        <div class="resume-container lg:w-1/2 bg-darkBg/50 p-6 lg:p-8 rounded-lg border border-white/10">
+          <div class="resume-item">
+            <!-- 时间作为主标题，放在左上角 -->
+            <div class="text-xl lg:text-2xl xl:text-3xl font-light mb-3 lg:mb-4 text-white">2023.2-2024.8</div>
+            <h3 class="text-lg lg:text-xl font-medium mb-3 lg:mb-4">浙江凌迪数字科技有限公司 <span class="job-tag inline-block px-2 lg:px-3 py-1 ml-2 text-xs lg:text-sm rounded-full bg-white/10 text-white/70 text-center border border-white/20 cursor-default">品牌设计实习</span></h3>
+            <p class="text-appleGray mb-3 lg:mb-4 text-sm lg:text-base">独角兽 全球领先的服装产业链3D设计软件及AI服务提供商</p>
+            
+            <div class="space-y-3 lg:space-y-4">
+              <div>
+                <p class="font-medium mb-2 text-base lg:text-lg">一、核心产品界面与品牌视觉维护:</p>
+                <p class="text-appleGray pl-4 text-sm lg:text-base">参与公司核心产品Style3D Fabric的界面&体验设计，维护与迭代公司全球品牌视觉形象体系，确保所有输出物料严格符合品牌规范。</p>
+              </div>
+              
+              <div>
+                <p class="font-medium mb-2 text-base lg:text-lg">二、AI驱动的视觉设计解决方案:</p>
+                <p class="text-appleGray pl-4 text-sm lg:text-base">主导创新型业务"企业微官网"的全流程视觉设计并制定SOP。深入应用Midjourney进行AI图像生成解决该项目中特定行业场景图片素材稀缺的痛点，为客户高效生产高贴合度的营销视觉内容，直接助力客户在展会等场景实现业务推广与成衣销售目标。</p>
+              </div>
+              
+              <div>
+                <p class="font-medium mb-2 text-base lg:text-lg">三、AI驱动的视觉设计解决方案:</p>
+                <p class="text-appleGray pl-4 text-sm lg:text-base">参与公司自研AI产品的内测与优化流程，负责对AI生成图像的结果进行系统性质量评估与满意度打分。通过制定评估标准，从视觉一致性、审美质量、细节完成度等多维度提供结构化反馈，为开发团队优化模型算法提供了关键数据支持。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+
+    
+    // 自定义鼠标指针功能
+    const cursor = document.getElementById('customCursor');
+    
+    // 跟踪鼠标移动
+    document.addEventListener('mousemove', (e) => {
+      // 更新鼠标位置
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      // 更新主光标
+      cursor.style.left = x + 'px';
+      cursor.style.top = y + 'px';
+    });
+    
+    // 检测可交互元素并更改光标样式
+      const interactiveElements = document.querySelectorAll('a, button, .menu-button, .copy-btn, .social-icon, [onclick], [href], [role="button"]');
+    
+    interactiveElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        cursor.style.backgroundColor = 'white';
+        cursor.style.borderColor = 'white';
+        cursor.style.width = '20px';
+        cursor.style.height = '20px';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        cursor.style.backgroundColor = 'transparent';
+        cursor.style.borderColor = 'white';
+        cursor.style.width = '24px';
+        cursor.style.height = '24px';
+      });
+    });
+    
+    // 处理窗口大小变化和页面滚动
+    window.addEventListener('resize', () => {
+      // 重新计算鼠标位置
+      if (window.mouseX !== null && window.mouseY !== null) {
+        cursor.style.left = window.mouseX + 'px';
+        cursor.style.top = window.mouseY + 'px';
+      }
+    });
+    
+    // 确保页面有足够的滚动空间来触发工作履历交互
+    const ensureScrollable = () => {
+      const body = document.body;
+      const html = document.documentElement;
+      const minHeight = window.innerHeight * 2.5; // 增加页面高度以确保有足够的滚动空间
+      const currentHeight = Math.max(
+        body.scrollHeight,
+        body.offsetHeight,
+        html.clientHeight,
+        html.scrollHeight,
+        html.offsetHeight
+      );
+      
+      // 移除已存在的spacer以避免累积过多空间
+      const existingSpacer = document.getElementById('scroll-spacer');
+      if (existingSpacer) {
+        document.body.removeChild(existingSpacer);
+      }
+      
+      if (currentHeight < minHeight) {
+        // 添加足够的空白元素来确保滚动
+        const newSpacer = document.createElement('div');
+        newSpacer.id = 'scroll-spacer';
+        newSpacer.style.height = (minHeight - currentHeight) + 'px';
+        newSpacer.style.width = '100%';
+        document.body.appendChild(newSpacer);
+      }
+    };
+    
+    // 页面加载完成后确保可滚动
+    window.addEventListener('load', ensureScrollable);
+    window.addEventListener('resize', ensureScrollable);
+    
+    // 处理页面滚动
+    window.addEventListener('scroll', () => {
+      // 重新计算鼠标位置
+      if (window.mouseX !== null && window.mouseY !== null) {
+        cursor.style.left = window.mouseX + 'px';
+        cursor.style.top = window.mouseY + 'px';
+      }
+      
+      // 检查滚动位置，实现工作履历覆盖效果
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = Math.max(
+        document.body.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.clientHeight,
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight
+      );
+      
+      const resumeSection = document.getElementById('resume-section');
+      const scrollIndicator = document.getElementById('scroll-indicator');
+      
+      // 计算滚动百分比，当滚动超过30%时触发（更容易触发）
+      const scrollPercentage = scrollPosition / (documentHeight - windowHeight);
+      const triggerPercentage = 0.3; // 30%的滚动位置
+      
+      // 检查工作履历是否已经显示
+      const isResumeVisible = resumeSection.style.transform === 'translateY(-100vh)';
+      
+      // 当滚动超过阈值时，显示工作履历部分并隐藏滚动提示
+      if (scrollPercentage > triggerPercentage && !isResumeVisible) {
+        resumeSection.style.transform = 'translateY(-100vh)';
+        scrollIndicator.style.opacity = '0';
+        
+        // 延迟显示工作经历项，创造动画效果
+        setTimeout(() => {
+          const resumeItems = document.querySelectorAll('.resume-item');
+          resumeItems.forEach((item, index) => {
+            setTimeout(() => {
+              item.classList.add('visible');
+            }, index * 300);
+          });
+        }, 600);
+      } 
+      // 当在工作履历页面向上滚动到顶部时，隐藏工作履历并返回联系页面
+      else if (isResumeVisible && scrollPosition < 100) {
+        // 延迟隐藏工作履历，等待页面滚动到顶部
+        setTimeout(() => {
+          resumeSection.style.transform = 'translateY(0)';
+          
+          // 移除工作经历项的可见性类，重置动画
+          setTimeout(() => {
+            const resumeItems = document.querySelectorAll('.resume-item');
+            resumeItems.forEach(item => {
+              item.classList.remove('visible');
+            });
+          }, 600);
+          
+          // 显示滚动提示
+          setTimeout(() => {
+            scrollIndicator.style.opacity = '1';
+          }, 800);
+        }, 300);
+      }
+    });
+    
+    // 返回联系信息按钮事件
+    document.getElementById('back-to-contact').addEventListener('click', () => {
+      const resumeSection = document.getElementById('resume-section');
+      resumeSection.style.transform = 'translateY(0)';
+      
+      // 移除工作经历项的可见性类，重置动画
+      setTimeout(() => {
+        const resumeItems = document.querySelectorAll('.resume-item');
+        resumeItems.forEach(item => {
+          item.classList.remove('visible');
+        });
+      }, 600);
+      
+      // 滚动到页面顶部
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // 显示滚动提示
+      const scrollIndicator = document.getElementById('scroll-indicator');
+      setTimeout(() => {
+        scrollIndicator.style.opacity = '1';
+      }, 800);
+    });
+    
+    // 一键复制功能
+    const copyButtons = document.querySelectorAll('.copy-btn');
+    
+    copyButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const textToCopy = button.getAttribute('data-text');
+        
+        // 创建临时文本区域
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = textToCopy;
+        document.body.appendChild(tempTextArea);
+        
+        // 选择并复制文本
+        tempTextArea.select();
+        document.execCommand('copy');
+        
+        // 移除临时文本区域
+        document.body.removeChild(tempTextArea);
+        
+        // 更新按钮状态
+        button.textContent = '已复制';
+        button.classList.add('copied');
+        
+        // 3秒后恢复按钮状态
+        setTimeout(() => {
+          button.textContent = '复制';
+          button.classList.remove('copied');
+        }, 3000);
+      });
+    });
+    
+    // 粒子动画效果
+    function createParticleAnimation() {
+      const canvas = document.getElementById('visualEffectsCanvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      
+      // 设置canvas尺寸
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        canvas.width = container.offsetWidth;
+        canvas.height = container.offsetHeight;
+      }
+      
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      
+      // 创建粒子
+      const particles = [];
+      const particleCount = 50;
+      
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 3 + 1,
+          speedX: (Math.random() - 0.5) * 0.5,
+          speedY: (Math.random() - 0.5) * 0.5,
+          color: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 0.5 + 0.1})`
+        });
+      }
+      
+      // 绘制和更新粒子
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let i = 0; i < particles.length; i++) {
+          const particle = particles[i];
+          
+          // 绘制粒子
+          ctx.fillStyle = particle.color;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // 更新粒子位置
+          particle.x += particle.speedX;
+          particle.y += particle.speedY;
+          
+          // 边界检测
+          if (particle.x < 0 || particle.x > canvas.width) {
+            particle.speedX *= -1;
+          }
+          if (particle.y < 0 || particle.y > canvas.height) {
+            particle.speedY *= -1;
+          }
+        }
+        
+        requestAnimationFrame(animate);
+      }
+      
+      animate(); // 启动粒子动画
+    }
+    
+    // 添加入场动画
+    function addEntranceAnimations() {
+      const contactInfoElements = document.querySelectorAll('.info-card, .social-icon, h3');
+      
+      contactInfoElements.forEach((element, index) => {
+        // 初始状态
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        // 延迟显示
+        setTimeout(() => {
+          element.style.opacity = '1';
+          element.style.transform = 'translateY(0)';
+        }, 300 + index * 150);
+      });
+    }
+    
+    // 页面加载完成后启动所有效果
+    window.addEventListener('load', () => {
+      createParticleAnimation();
+      addEntranceAnimations();
+    });
+  </script>
+
+</body>
+</html>
+    
